@@ -99,8 +99,8 @@ function drawGrassArrows(ctx, g) {
 }
 
 // The catcher: a light-blue "egg-man" — a rounded egg body with two ringed eyes,
-// a neutral mouth, bent arms with hands on the hips, a pants/waistband line, and
-// two splayed legs with outward feet on the grass.
+// a neutral mouth, a pants/waistband line, and two splayed legs with outward
+// feet on the grass.
 //
 // He lunges toward the active lane rather than sliding: the body tilts (and
 // stretches) about the planted feet, and the feet take only the partial step
@@ -194,16 +194,6 @@ function drawEggMan(ctx, lean, eatT) {
   ctx.bezierCurveTo(-38, -12, -30, -86, 0, -90);
   ctx.fill();
   ctx.stroke();
-
-  // Bent arms with hands resting on the hips (elbows out, rounded hand ends).
-  ctx.lineWidth = 3;
-  for (const s of [-1, 1]) {
-    ctx.beginPath();
-    ctx.moveTo(s * 30, -54); // shoulder
-    ctx.lineTo(s * 47, -42); // elbow, jutting out
-    ctx.lineTo(s * 23, -33); // hand resting on the waistband
-    ctx.stroke();
-  }
 
   // Pants / waistband: a band that bows downward across the lower belly.
   ctx.lineWidth = 3;
