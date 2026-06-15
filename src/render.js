@@ -82,8 +82,9 @@ function drawGrassArrows(ctx, g) {
   chevron(VIRTUAL_W - 42, -1, g.input.right); // ">"
 }
 
-// The catcher: a light-blue "egg-man" — tall egg body, two eyes, an open mouth,
-// bent arms on the hips, and two stubby legs/feet on the grass.
+// The catcher: a light-blue "egg-man" — a rounded egg body with two ringed eyes,
+// a neutral mouth, bent arms with hands on the hips, a pants/waistband line, and
+// two splayed legs with outward feet on the grass.
 //
 // He lunges toward the active lane rather than sliding: the body tilts (and
 // stretches) about the planted feet, and the feet take only the partial step
@@ -93,7 +94,7 @@ function drawEggMan(ctx, lean, eatT) {
   const S = EGGMAN_SCALE;
   const mid = LANE_X[SLOT_MIDDLE];
   const side = LANE_X[2] - LANE_X[SLOT_MIDDLE];
-  const MOUTH_Y = -42; // mouth height above the feet, in sprite-local units
+  const MOUTH_Y = -48; // mouth height above the feet, in sprite-local units
 
   const tilt = lean * EGGMAN_MAX_TILT;
   const stretch = 1 + (EGGMAN_STRETCH - 1) * Math.abs(lean);
@@ -117,64 +118,78 @@ function drawEggMan(ctx, lean, eatT) {
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
-  // Planted feet (upright — they do not tilt with the body).
+  // Legs stay tethered to the planted feet while their tops follow the leaning
+  // body. Drawn in this (un-rotated) frame; each hip is the body's leg-attach
+  // point pushed through the same tilt+stretch the body uses, so the legs angle
+  // into the lunge without ever detaching from the feet.
+  const stretchEff = stretch * (1 - 0.06 * chomp);
   ctx.lineWidth = 3;
-  for (const lx of [-11, 11]) {
-    ctx.fillStyle = fill;
+  for (const s of [-1, 1]) {
+    const hy = -12 * stretchEff; // hip height, stretched like the body
+    const hx = s * 9;
+    const hipX = hx * Math.cos(tilt) - hy * Math.sin(tilt);
+    const hipY = hx * Math.sin(tilt) + hy * Math.cos(tilt);
     ctx.beginPath();
-    ctx.ellipse(lx + (lx < 0 ? -3 : 3), 0, 9, 4, 0, 0, Math.PI * 2);
+    ctx.moveTo(s * 22, -1); // foot end (planted)
+    ctx.lineTo(hipX, hipY); // hip under the leaning body
+    ctx.stroke();
+  }
+
+  // Planted feet (upright — they do not tilt with the body), splayed outward.
+  ctx.lineWidth = 3;
+  ctx.fillStyle = fill;
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.ellipse(s * 23, 0, 11, 4.5, s * 0.18, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
   }
 
   // The body leans/stretches toward the lane, pivoting on the feet; it squashes
-  // a touch on the swallow.
+  // a touch on the swallow. (Legs were already drawn above so the body overlaps
+  // their tops and hides the hip seam.)
   ctx.rotate(tilt);
-  ctx.scale(1, stretch * (1 - 0.06 * chomp));
+  ctx.scale(1, stretchEff);
 
-  // Legs
-  ctx.lineWidth = 3;
-  for (const lx of [-11, 11]) {
-    ctx.beginPath();
-    ctx.moveTo(lx, -2);
-    ctx.lineTo(lx, -18);
-    ctx.stroke();
-  }
-
-  // Tall egg-shaped body (pointier at the top, rounder at the bottom)
+  // Smooth egg body: rounded top, fuller rounded bottom (horizontal tangents
+  // top and bottom keep both ends nicely curved rather than pointed).
   ctx.fillStyle = fill;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(0, -86);
-  ctx.bezierCurveTo(28, -80, 34, -30, 0, -14);
-  ctx.bezierCurveTo(-34, -30, -28, -80, 0, -86);
+  ctx.moveTo(0, -90);
+  ctx.bezierCurveTo(30, -86, 38, -12, 0, -12);
+  ctx.bezierCurveTo(-38, -12, -30, -86, 0, -90);
   ctx.fill();
   ctx.stroke();
 
-  // Arms bent onto the hips, with a hand-line across the waist
-  ctx.lineWidth = 2.5;
+  // Bent arms with hands resting on the hips (elbows out, rounded hand ends).
+  ctx.lineWidth = 3;
+  for (const s of [-1, 1]) {
+    ctx.beginPath();
+    ctx.moveTo(s * 30, -54); // shoulder
+    ctx.lineTo(s * 47, -42); // elbow, jutting out
+    ctx.lineTo(s * 23, -33); // hand resting on the waistband
+    ctx.stroke();
+  }
+
+  // Pants / waistband: a band that bows downward across the lower belly.
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(-26, -30);
-  ctx.lineTo(-37, -22);
-  ctx.lineTo(-20, -14);
-  ctx.moveTo(26, -30);
-  ctx.lineTo(37, -22);
-  ctx.lineTo(20, -14);
-  ctx.moveTo(-20, -14);
-  ctx.lineTo(20, -14);
+  ctx.moveTo(-24, -34);
+  ctx.quadraticCurveTo(0, -22, 24, -34);
   ctx.stroke();
 
-  // Eyes (whites + pupils)
-  for (const ex of [-11, 11]) {
+  // Eyes (whites + calm solid pupils)
+  for (const ex of [-12, 12]) {
     ctx.fillStyle = fill;
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.2;
     ctx.beginPath();
-    ctx.arc(ex, -56, 7, 0, Math.PI * 2);
+    ctx.arc(ex, -60, 6.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = ink;
     ctx.beginPath();
-    ctx.arc(ex, -56, 1.8, 0, Math.PI * 2);
+    ctx.arc(ex, -60, 2.6, 0, Math.PI * 2);
     ctx.fill();
   }
 
@@ -192,17 +207,25 @@ function drawEggMan(ctx, lean, eatT) {
     ctx.strokeStyle = ink;
   }
 
-  // Mouth: resting ajar; opens wide to receive the egg, then chomps shut.
-  let open = 2.2;
+  // Mouth: a neutral flat line at rest; opens wide to receive the egg on a catch.
   if (eating) {
-    open = u < 0.5
+    const open = u < 0.5
       ? 3 + 9 * (u / 0.5) // widen as the egg drops in
       : 12 * Math.max(0, 1 - (u - 0.5) / 0.35); // snap closed
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.ellipse(0, MOUTH_Y, 7, open, 0, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    ctx.strokeStyle = ink;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-11, MOUTH_Y + 1.5); // slight upturned corner
+    ctx.lineTo(-9, MOUTH_Y);
+    ctx.lineTo(9, MOUTH_Y);
+    ctx.lineTo(11, MOUTH_Y + 1.5);
+    ctx.stroke();
   }
-  ctx.fillStyle = ink;
-  ctx.beginPath();
-  ctx.ellipse(0, MOUTH_Y, 7, open, 0, 0, Math.PI * 2);
-  ctx.fill();
 
   ctx.restore();
 }
