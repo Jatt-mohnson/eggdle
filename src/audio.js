@@ -4,6 +4,7 @@
 let actx = null;
 let master = null;
 let muted = false;
+let unlocked = false;
 
 export function resume() {
   if (!actx) {
@@ -15,6 +16,17 @@ export function resume() {
     master.connect(actx.destination);
   }
   if (actx.state === 'suspended') actx.resume();
+  // iOS Safari won't actually unlock the audio output until a buffer has been
+  // played from inside a user gesture — resume() alone is not enough. Push one
+  // silent buffer through so the very first real tone is audible.
+  if (!unlocked) {
+    const buf = actx.createBuffer(1, 1, actx.sampleRate);
+    const src = actx.createBufferSource();
+    src.buffer = buf;
+    src.connect(actx.destination);
+    src.start(0);
+    unlocked = true;
+  }
 }
 
 export function toggleMute() {
