@@ -57,6 +57,22 @@ export function attachInput(canvas, getGame) {
   bindHold(document.getElementById('btn-left'), 'left');
   bindHold(document.getElementById('btn-right'), 'right');
 
+  // iOS Safari still honors double-tap-to-zoom even with user-scalable=no and
+  // touch-action:none. Two quick side-taps (move left, then right) get read as a
+  // double-tap and zoom the page into the tap point. Suppress any tap that lands
+  // within 300ms of the previous one — there are no intentional double-taps here.
+  // Buttons (the menu/result overlay) are excluded so their taps still register.
+  let lastTouchEnd = 0;
+  document.addEventListener(
+    'touchend',
+    (e) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300 && !e.target.closest('button')) e.preventDefault();
+      lastTouchEnd = now;
+    },
+    { passive: false }
+  );
+
   // Safety: if the page loses focus mid-hold, drop both directions.
   window.addEventListener('blur', () => {
     const g = getGame();
