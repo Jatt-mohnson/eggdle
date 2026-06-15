@@ -11,6 +11,7 @@ import {
   EGG_BASE,
   COMBO_BONUS,
   BAD_PENALTY,
+  EGGMAN_EAT_TIME,
 } from './config.js';
 import { buildSchedule } from './schedule.js';
 import { spawnEgg, integrateEgg } from './entities.js';
@@ -27,7 +28,8 @@ export function createGame(seedString, mode) {
     t: 0,
     catchY: CATCH_Y,
     // catcher: slot drives catch logic; x is a cosmetic slide toward the slot.
-    catcher: { slot: SLOT_MIDDLE, x: LANE_X[SLOT_MIDDLE] },
+    // eatT counts down a chomp/swallow animation each time a good egg is caught.
+    catcher: { slot: SLOT_MIDDLE, x: LANE_X[SLOT_MIDDLE], eatT: 0 },
     input: { left: false, right: false }, // set by keyboard or the touch hold-buttons
     score: 0,
     combo: 0,
@@ -66,6 +68,7 @@ export function step(g) {
   const d = tx - g.catcher.x;
   const maxMove = CATCHER_SLIDE * dt;
   g.catcher.x += Math.abs(d) <= maxMove ? d : Math.sign(d) * maxMove;
+  if (g.catcher.eatT > 0) g.catcher.eatT = Math.max(0, g.catcher.eatT - dt);
 
   // Integrate eggs and resolve outcomes at the catch line.
   for (const egg of g.eggs) {
@@ -77,6 +80,7 @@ export function step(g) {
       g.combo += 1;
       g.maxCombo = Math.max(g.maxCombo, g.combo);
       g.caught += 1;
+      g.catcher.eatT = EGGMAN_EAT_TIME; // kick off the chomp/swallow animation
       g.results.push('caught');
       g.events.push({ type: 'caught', x: egg.x, y: g.catchY, combo: g.combo, points: gained });
     } else if (r === 'missed') {

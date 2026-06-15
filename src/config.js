@@ -18,9 +18,15 @@ export const FALL_SPEED_START = 1.0;
 export const FALL_SPEED_END = 1.95;
 
 // Catcher (egg-man) — three discrete slots, springs back to middle
-export const EGGMAN_Y = 612;
-export const CATCH_Y = 600; // y line where a catch is decided
+export const EGGMAN_Y = 640; // feet / ground line for the egg-man
+export const CATCH_Y = 584; // y line where a catch is decided (≈ the egg-man's mouth)
 export const CATCHER_SLIDE = 2600; // px/s cosmetic slide between slots (does not affect catch logic)
+// The egg-man lunges toward the active lane: his body tilts (and stretches) hard
+// while his feet take only a partial step, so his mouth lands under the egg.
+export const EGGMAN_SCALE = 1.35; // overall size of the egg-man sprite
+export const EGGMAN_MAX_TILT = 1.05; // radians the body tilts at a full left/right lean (~60°)
+export const EGGMAN_STRETCH = 1.5; // body lengthens up to this at full lean, to extend the reach
+export const EGGMAN_EAT_TIME = 0.5; // seconds of the chomp/swallow animation on a catch
 
 // Lanes: three straight vertical columns
 export const LANES = 3;

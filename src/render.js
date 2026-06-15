@@ -1,6 +1,9 @@
 // Canvas rendering. Phase A uses simple shapes; sprites come in Phase C.
 
-import { VIRTUAL_W, VIRTUAL_H, LANE_X, EGGMAN_Y, CATCH_Y, ROUND_SECONDS } from './config.js';
+import {
+  VIRTUAL_W, VIRTUAL_H, LANE_X, EGGMAN_Y, CATCH_Y, ROUND_SECONDS,
+  SLOT_MIDDLE, EGGMAN_SCALE, EGGMAN_MAX_TILT, EGGMAN_STRETCH, EGGMAN_EAT_TIME,
+} from './config.js';
 
 export function resizeCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
@@ -79,75 +82,127 @@ function drawGrassArrows(ctx, g) {
   chevron(VIRTUAL_W - 42, -1, g.input.right); // ">"
 }
 
-// The catcher: a light-blue "egg-man" — egg body, two eyes, a flat mouth,
-// bent arms resting on the hips, and two stubby legs with feet on the grass.
-function drawEggMan(ctx, x) {
-  ctx.save();
-  ctx.translate(x, EGGMAN_Y);
+// The catcher: a light-blue "egg-man" — tall egg body, two eyes, an open mouth,
+// bent arms on the hips, and two stubby legs/feet on the grass.
+//
+// He lunges toward the active lane rather than sliding: the body tilts (and
+// stretches) about the planted feet, and the feet take only the partial step
+// needed so his open mouth lands directly under the lane. `lean` is -1..1
+// (left..right). `eatT` is the remaining chomp-animation time after a catch.
+function drawEggMan(ctx, lean, eatT) {
+  const S = EGGMAN_SCALE;
+  const mid = LANE_X[SLOT_MIDDLE];
+  const side = LANE_X[2] - LANE_X[SLOT_MIDDLE];
+  const MOUTH_Y = -42; // mouth height above the feet, in sprite-local units
+
+  const tilt = lean * EGGMAN_MAX_TILT;
+  const stretch = 1 + (EGGMAN_STRETCH - 1) * Math.abs(lean);
+  // Horizontal distance the mouth gains purely from tilting/stretching the body
+  // about the feet; the feet then step the remainder so the mouth sits on the lane.
+  const reachX = -MOUTH_Y * S * stretch * Math.sin(tilt);
+  const footX = mid + lean * side - reachX;
+
+  // Eat animation: u runs 0 (just caught) -> 1 (finished).
+  const eating = eatT > 0;
+  const u = eating ? 1 - eatT / EGGMAN_EAT_TIME : 0;
+  const chomp = eating ? Math.max(0, Math.sin(u * Math.PI)) : 0; // 0..1..0 swallow pulse
 
   const fill = '#cddde6';
   const ink = '#2b3a4a';
+
+  ctx.save();
+  ctx.translate(footX, EGGMAN_Y);
+  ctx.scale(S, S);
   ctx.strokeStyle = ink;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
 
-  // Legs + feet (drawn first so the body overlaps their tops)
+  // Planted feet (upright — they do not tilt with the body).
   ctx.lineWidth = 3;
   for (const lx of [-11, 11]) {
-    ctx.beginPath();
-    ctx.moveTo(lx, 10);
-    ctx.lineTo(lx, 24);
-    ctx.stroke();
     ctx.fillStyle = fill;
     ctx.beginPath();
-    ctx.ellipse(lx + (lx < 0 ? -3 : 3), 27, 9, 4, 0, 0, Math.PI * 2);
+    ctx.ellipse(lx + (lx < 0 ? -3 : 3), 0, 9, 4, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
   }
 
-  // Egg-shaped body (pointier at the top, rounder at the bottom)
+  // The body leans/stretches toward the lane, pivoting on the feet; it squashes
+  // a touch on the swallow.
+  ctx.rotate(tilt);
+  ctx.scale(1, stretch * (1 - 0.06 * chomp));
+
+  // Legs
+  ctx.lineWidth = 3;
+  for (const lx of [-11, 11]) {
+    ctx.beginPath();
+    ctx.moveTo(lx, -2);
+    ctx.lineTo(lx, -18);
+    ctx.stroke();
+  }
+
+  // Tall egg-shaped body (pointier at the top, rounder at the bottom)
   ctx.fillStyle = fill;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(0, -44);
-  ctx.bezierCurveTo(24, -40, 32, 6, 0, 16);
-  ctx.bezierCurveTo(-32, 6, -24, -40, 0, -44);
+  ctx.moveTo(0, -86);
+  ctx.bezierCurveTo(28, -80, 34, -30, 0, -14);
+  ctx.bezierCurveTo(-34, -30, -28, -80, 0, -86);
   ctx.fill();
   ctx.stroke();
 
   // Arms bent onto the hips, with a hand-line across the waist
   ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.moveTo(-24, -6);
-  ctx.lineTo(-34, 0);
-  ctx.lineTo(-19, 8);
-  ctx.moveTo(24, -6);
-  ctx.lineTo(34, 0);
-  ctx.lineTo(19, 8);
-  ctx.moveTo(-19, 8);
-  ctx.lineTo(19, 8);
+  ctx.moveTo(-26, -30);
+  ctx.lineTo(-37, -22);
+  ctx.lineTo(-20, -14);
+  ctx.moveTo(26, -30);
+  ctx.lineTo(37, -22);
+  ctx.lineTo(20, -14);
+  ctx.moveTo(-20, -14);
+  ctx.lineTo(20, -14);
   ctx.stroke();
 
   // Eyes (whites + pupils)
-  for (const ex of [-10, 10]) {
+  for (const ex of [-11, 11]) {
     ctx.fillStyle = fill;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(ex, -20, 7, 0, Math.PI * 2);
+    ctx.arc(ex, -56, 7, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = ink;
     ctx.beginPath();
-    ctx.arc(ex, -20, 1.8, 0, Math.PI * 2);
+    ctx.arc(ex, -56, 1.8, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // Flat mouth
-  ctx.lineWidth = 2.5;
+  // The caught egg drops from above into the open mouth, then is swallowed.
+  if (eating && u < 0.55) {
+    const t2 = u / 0.55;
+    const ey = MOUTH_Y - 26 * (1 - t2);
+    ctx.fillStyle = '#fff7e6';
+    ctx.strokeStyle = '#e3c9a0';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(0, ey, 6, 7.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = ink;
+  }
+
+  // Mouth: resting ajar; opens wide to receive the egg, then chomps shut.
+  let open = 2.2;
+  if (eating) {
+    open = u < 0.5
+      ? 3 + 9 * (u / 0.5) // widen as the egg drops in
+      : 12 * Math.max(0, 1 - (u - 0.5) / 0.35); // snap closed
+  }
+  ctx.fillStyle = ink;
   ctx.beginPath();
-  ctx.moveTo(-7, -4);
-  ctx.lineTo(7, -4);
-  ctx.stroke();
+  ctx.ellipse(0, MOUTH_Y, 7, open, 0, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.restore();
 }
@@ -157,12 +212,15 @@ export function render(ctx, g) {
   ctx.fillRect(0, 0, VIRTUAL_W, VIRTUAL_H);
 
   ctx.fillStyle = '#7ec77e';
-  ctx.fillRect(0, EGGMAN_Y + 24, VIRTUAL_W, VIRTUAL_H - EGGMAN_Y - 24);
+  ctx.fillRect(0, EGGMAN_Y - 4, VIRTUAL_W, VIRTUAL_H - EGGMAN_Y + 4);
   drawGrassArrows(ctx, g);
 
   drawLanes(ctx);
   for (const egg of g.eggs) drawEgg(ctx, egg);
-  drawEggMan(ctx, g.catcher.x);
+  // Map the cosmetic catcher x (which springs between lanes) to a -1..1 lean.
+  const lean = Math.max(-1, Math.min(1,
+    (g.catcher.x - LANE_X[SLOT_MIDDLE]) / (LANE_X[2] - LANE_X[SLOT_MIDDLE])));
+  drawEggMan(ctx, lean, g.catcher.eatT);
 
   // HUD
   ctx.fillStyle = '#143a52';
