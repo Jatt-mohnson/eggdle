@@ -1,0 +1,49 @@
+// Tunable constants for Eggdle. Geometry is in logical units (the canvas is scaled to fit).
+
+export const VIRTUAL_W = 400;
+export const VIRTUAL_H = 700;
+
+// Round
+export const ROUND_SECONDS = 60; // shorter, punchier round
+export const START_DELAY = 1.2; // grace before the first egg
+
+// Simulation
+export const FIXED_DT = 1 / 120; // fixed-timestep step size (seconds)
+export const GRAVITY = 680; // base straight-down acceleration (px/s^2)
+export const MAX_FALL = 1500; // vertical speed cap (px/s)
+export const EGG_SPAWN_Y = 30; // y where eggs appear
+
+// Per-egg fall-speed multiplier, eased over the round so eggs get faster as it goes.
+export const FALL_SPEED_START = 1.0;
+export const FALL_SPEED_END = 1.95;
+
+// Catcher (Chansey) — three discrete slots, springs back to middle
+export const CHANSEY_Y = 612;
+export const CATCH_Y = 600; // y line where a catch is decided
+export const CATCHER_SLIDE = 2600; // px/s cosmetic slide between slots (does not affect catch logic)
+
+// Lanes: three straight vertical columns
+export const LANES = 3;
+export const LANE_X = [VIRTUAL_W * (1 / 6), VIRTUAL_W * (3 / 6), VIRTUAL_W * (5 / 6)];
+export const SLOT_MIDDLE = 1;
+
+// Scoring
+export const EGG_BASE = 100;
+export const COMBO_BONUS = 10; // per current combo
+export const BAD_PENALTY = 150; // points lost for catching a bad egg
+
+// --- Schedule / difficulty curve ------------------------------------------
+// Chance a plain "single" spawn is a bad egg (eased up over the round).
+export const BAD_CHANCE_START = 0.16;
+export const BAD_CHANCE_END = 0.5;
+// Gap between rapid eggs inside a pattern (burst/sweep/flick), eased tighter.
+export const GAP_SHORT_START = 0.34;
+export const GAP_SHORT_END = 0.12;
+// Gap between separate patterns, eased tighter.
+export const GAP_NORMAL_START = 0.78;
+export const GAP_NORMAL_END = 0.32;
+// Length of a "breather" pause woven in after busy stretches.
+export const BREATHER_START = 1.1;
+export const BREATHER_END = 0.52;
+// Force a breather after this many busy patterns in a row.
+export const BUSY_BEFORE_BREATHER = 3;

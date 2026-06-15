@@ -1,0 +1,16 @@
+❯ 1. Web — vanilla JS + Canvas
+     Plain HTML5 Canvas + JS/TS, no framework. Lightest setup, easy to host as a static site.
+  2. Web — React + Canvas/PixiJS
+     React shell with a Canvas or PixiJS game layer. Good if you want UI (menus, stats, sharing) plus a game canvas.
+  3. Web — game engine (Phaser)
+     Phaser 3 handles sprites, physics, input, scenes out of the box. Fastest path to a polished arcade feel.
+
+
+
+
+
+increase. complexity at the end even more?
+
+Golden snitch, a golden egg that will try to bounce into a different lane to avoid the user
+cinderblck that will flatten the user and not be able to move for 2 seconds
+
