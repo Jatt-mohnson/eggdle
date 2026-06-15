@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # Dev static server that disables caching, so every refresh loads fresh module files.
+# Port defaults to 8001; override with `python3 serve.py <port>` or the PORT env var.
+import os
+import sys
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 
@@ -12,4 +15,6 @@ class NoCacheHandler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    HTTPServer(("", 8000), NoCacheHandler).serve_forever()
+    port = int(sys.argv[1] if len(sys.argv) > 1 else os.environ.get("PORT", 8001))
+    print(f"Serving on http://localhost:{port}  (Ctrl-C to stop)")
+    HTTPServer(("", port), NoCacheHandler).serve_forever()

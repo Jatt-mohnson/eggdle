@@ -1,6 +1,6 @@
 // Canvas rendering. Phase A uses simple shapes; sprites come in Phase C.
 
-import { VIRTUAL_W, VIRTUAL_H, LANE_X, CHANSEY_Y, CATCH_Y, ROUND_SECONDS } from './config.js';
+import { VIRTUAL_W, VIRTUAL_H, LANE_X, EGGMAN_Y, CATCH_Y, ROUND_SECONDS } from './config.js';
 
 export function resizeCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
@@ -79,22 +79,76 @@ function drawGrassArrows(ctx, g) {
   chevron(VIRTUAL_W - 42, -1, g.input.right); // ">"
 }
 
-function drawChansey(ctx, x) {
+// The catcher: a light-blue "egg-man" — egg body, two eyes, a flat mouth,
+// bent arms resting on the hips, and two stubby legs with feet on the grass.
+function drawEggMan(ctx, x) {
   ctx.save();
-  ctx.translate(x, CHANSEY_Y);
-  ctx.fillStyle = '#f6a5c0';
+  ctx.translate(x, EGGMAN_Y);
+
+  const fill = '#cddde6';
+  const ink = '#2b3a4a';
+  ctx.strokeStyle = ink;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  // Legs + feet (drawn first so the body overlaps their tops)
+  ctx.lineWidth = 3;
+  for (const lx of [-11, 11]) {
+    ctx.beginPath();
+    ctx.moveTo(lx, 10);
+    ctx.lineTo(lx, 24);
+    ctx.stroke();
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.ellipse(lx + (lx < 0 ? -3 : 3), 27, 9, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // Egg-shaped body (pointier at the top, rounder at the bottom)
+  ctx.fillStyle = fill;
+  ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.ellipse(0, 0, 40, 30, 0, 0, Math.PI * 2);
+  ctx.moveTo(0, -44);
+  ctx.bezierCurveTo(24, -40, 32, 6, 0, 16);
+  ctx.bezierCurveTo(-32, 6, -24, -40, 0, -44);
   ctx.fill();
-  ctx.fillStyle = '#fff';
+  ctx.stroke();
+
+  // Arms bent onto the hips, with a hand-line across the waist
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.ellipse(0, 8, 24, 16, 0, 0, Math.PI);
-  ctx.fill();
-  ctx.fillStyle = '#3a2b2b';
+  ctx.moveTo(-24, -6);
+  ctx.lineTo(-34, 0);
+  ctx.lineTo(-19, 8);
+  ctx.moveTo(24, -6);
+  ctx.lineTo(34, 0);
+  ctx.lineTo(19, 8);
+  ctx.moveTo(-19, 8);
+  ctx.lineTo(19, 8);
+  ctx.stroke();
+
+  // Eyes (whites + pupils)
+  for (const ex of [-10, 10]) {
+    ctx.fillStyle = fill;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(ex, -20, 7, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.arc(ex, -20, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Flat mouth
+  ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.arc(-10, -10, 2.5, 0, Math.PI * 2);
-  ctx.arc(10, -10, 2.5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.moveTo(-7, -4);
+  ctx.lineTo(7, -4);
+  ctx.stroke();
+
   ctx.restore();
 }
 
@@ -103,12 +157,12 @@ export function render(ctx, g) {
   ctx.fillRect(0, 0, VIRTUAL_W, VIRTUAL_H);
 
   ctx.fillStyle = '#7ec77e';
-  ctx.fillRect(0, CHANSEY_Y + 24, VIRTUAL_W, VIRTUAL_H - CHANSEY_Y - 24);
+  ctx.fillRect(0, EGGMAN_Y + 24, VIRTUAL_W, VIRTUAL_H - EGGMAN_Y - 24);
   drawGrassArrows(ctx, g);
 
   drawLanes(ctx);
   for (const egg of g.eggs) drawEgg(ctx, egg);
-  drawChansey(ctx, g.catcher.x);
+  drawEggMan(ctx, g.catcher.x);
 
   // HUD
   ctx.fillStyle = '#143a52';

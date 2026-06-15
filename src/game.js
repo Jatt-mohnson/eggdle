@@ -7,7 +7,7 @@ import {
   SLOT_MIDDLE,
   CATCHER_SLIDE,
   CATCH_Y,
-  CHANSEY_Y,
+  EGGMAN_Y,
   EGG_BASE,
   COMBO_BONUS,
   BAD_PENALTY,
@@ -102,4 +102,4 @@ export function step(g) {
   }
 }
 
-export const constants = { CHANSEY_Y, ROUND_SECONDS };
+export const constants = { EGGMAN_Y, ROUND_SECONDS };

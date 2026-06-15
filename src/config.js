@@ -17,8 +17,8 @@ export const EGG_SPAWN_Y = 30; // y where eggs appear
 export const FALL_SPEED_START = 1.0;
 export const FALL_SPEED_END = 1.95;
 
-// Catcher (Chansey) — three discrete slots, springs back to middle
-export const CHANSEY_Y = 612;
+// Catcher (egg-man) — three discrete slots, springs back to middle
+export const EGGMAN_Y = 612;
 export const CATCH_Y = 600; // y line where a catch is decided
 export const CATCHER_SLIDE = 2600; // px/s cosmetic slide between slots (does not affect catch logic)
 

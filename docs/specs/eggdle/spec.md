@@ -6,7 +6,7 @@ mini-game in *Pokémon Stadium 2*. Vanilla JS + HTML5 Canvas, no build step, sta
 ## Concept
 
 Blissey rolls eggs down a set of zig-zag ramps; they accelerate and drop off the bottom.
-The player slides **Chansey** left/right along a catch line to catch them. A "daily"
+The player slides the **egg-man** left/right along a catch line to catch them. A "daily"
 wrapper makes every player on a given date play the **identical** egg sequence and compare
 scores, like Wordle.
 
@@ -100,7 +100,7 @@ src/
 
 ## Build phases
 
-- **Phase A (this pass) — MVP:** ramps + eggs, Chansey catch, score/combo, 75s timer,
+- **Phase A (this pass) — MVP:** ramps + eggs, egg-man catch, score/combo, 75s timer,
   deterministic daily seed, fixed-timestep sim, one-play-per-day lock, result + share, practice
   mode. Plain shapes, no art.
 - **Phase B — depth:** bombs/stun, golden eggs, difficulty curve tuning, stats/streak UI,
