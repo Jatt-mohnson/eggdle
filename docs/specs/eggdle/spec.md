@@ -115,3 +115,24 @@ ES modules require HTTP (not `file://`):
 ```
 python3 -m http.server 8000   # then open http://localhost:8000
 ```
+
+(Or `python3 serve.py` for a no-cache dev server, so module edits always reload fresh.)
+
+## Deployment
+
+The game is a **pure static site** — no build step, no dependencies, all paths relative — so
+any static host serves it as-is. `serve.py` is dev-only and not needed in production.
+
+**Live:** https://jatt-mohnson.github.io/eggdle/ (GitHub Pages, repo `Jatt-mohnson/eggdle`,
+served from `main` branch root). Pushing to `main` auto-redeploys in ~1–2 min.
+
+Requirements any host must meet:
+
+- **HTTPS** — `navigator.clipboard` (the "Copy result" button in `share.js`/`main.js`) only
+  works in a secure context. Plain HTTP would silently break sharing on phones.
+- **Correct MIME for ES modules** — `.js` must be served as `text/javascript`. GitHub Pages,
+  Netlify, Cloudflare Pages, and Vercel all do this by default.
+
+No backend is required: the daily puzzle is seeded from each device's **local date**
+(`todaySeed()`), and streak/daily-lock state lives in `localStorage` (per device/browser,
+matching Wordle).
