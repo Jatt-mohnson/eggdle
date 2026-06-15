@@ -9,7 +9,7 @@ import { resizeCanvas, render } from './render.js';
 // Shown on the result screen for a 25+ combo run (distinct from the in-game rage sprite).
 const CONGRATS_SRC = './assets/congrats.png';
 import { getStats, hasPlayedToday, recordDaily, resetAll } from './storage.js';
-import { buildShareText } from './share.js';
+import { buildShareText, GAME_URL } from './share.js';
 import * as audio from './audio.js';
 import * as effects from './effects.js';
 
@@ -151,6 +151,8 @@ function buildResultBlock(result, stats, mode) {
     mode === 'daily'
       ? buildShareText({ ...result, date: dateSeed }, stats.streak)
       : `Eggdle practice — ${result.score.toLocaleString()} 🥚 · caught ${result.caught}/${result.total}`;
+  // Displayed result omits the link; the copied version appends it so shares are clickable.
+  const copyText = `${share}\n${GAME_URL}`;
   // Hot streak (combo reached the rage threshold at any point): egg-man reward.
   const perfect = result.maxCombo >= RAGE_COMBO;
   const block = el('div', { className: 'result' }, [
@@ -167,7 +169,7 @@ function buildResultBlock(result, stats, mode) {
       textContent: 'Copy result',
       onclick: async (e) => {
         try {
-          await navigator.clipboard.writeText(share);
+          await navigator.clipboard.writeText(copyText);
           e.target.textContent = 'Copied!';
         } catch {
           e.target.textContent = 'Copy failed';
