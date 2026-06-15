@@ -119,6 +119,20 @@ button.devlink {
   margin-top: 16px;
   padding: 4px;
 }
+.result .congrats {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto 8px;
+  image-rendering: pixelated;
+}
+.result .perfect {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ff5a3c;
+  margin: 4px 0 2px;
+}
 .result .score {
   font-size: 40px;
   font-weight: 800;

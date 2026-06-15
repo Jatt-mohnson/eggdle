@@ -27,6 +27,9 @@ export const EGGMAN_SCALE = 1.35; // overall size of the egg-man sprite
 export const EGGMAN_MAX_TILT = 1.05; // radians the body tilts at a full left/right lean (~60°)
 export const EGGMAN_STRETCH = 1.5; // body lengthens up to this at full lean, to extend the reach
 export const EGGMAN_EAT_TIME = 0.5; // seconds of the chomp/swallow animation on a catch
+// Combo length that triggers the raging egg-man. The catcher rages while the
+// live combo is at or above this; the result screen rewards reaching it at all.
+export const RAGE_COMBO = 25;
 
 // Lanes: three straight vertical columns
 export const LANES = 3;

@@ -3,7 +3,23 @@
 import {
   VIRTUAL_W, VIRTUAL_H, LANE_X, EGGMAN_Y, CATCH_Y, ROUND_SECONDS,
   SLOT_MIDDLE, EGGMAN_SCALE, EGGMAN_MAX_TILT, EGGMAN_STRETCH, EGGMAN_EAT_TIME,
+  RAGE_COMBO,
 } from './config.js';
+
+// Perfect-run reward: once every good egg has been caught, the mild-mannered
+// egg-man drops his composure and "turns into" this raging sprite. Loaded once;
+// `rageReady` flips true on load so we never try to draw a half-decoded image.
+export const RAGE_SRC = './assets/eggman-rage.png';
+const rageImg = new Image();
+let rageReady = false;
+rageImg.onload = () => { rageReady = true; };
+rageImg.src = RAGE_SRC;
+
+// The egg-man rages while the live combo is at or above RAGE_COMBO. A miss
+// breaks the combo and he reverts to his composed self until the streak rebuilds.
+export function isRage(g) {
+  return g.combo >= RAGE_COMBO;
+}
 
 export function resizeCanvas(canvas) {
   const dpr = window.devicePixelRatio || 1;
@@ -90,6 +106,23 @@ function drawGrassArrows(ctx, g) {
 // stretches) about the planted feet, and the feet take only the partial step
 // needed so his open mouth lands directly under the lane. `lean` is -1..1
 // (left..right). `eatT` is the remaining chomp-animation time after a catch.
+// The raging egg-man: the reward sprite, drawn in place of the procedural
+// catcher. It still leans toward the active lane (and gives a tiny chomp shake)
+// so it reads as the same character, just transformed.
+function drawRageMan(ctx, lean, eatT) {
+  const mid = LANE_X[SLOT_MIDDLE];
+  const side = LANE_X[2] - LANE_X[SLOT_MIDDLE];
+  const cx = mid + lean * side;
+  // Match the procedural egg-man's footprint: ~150px tall, feet on EGGMAN_Y.
+  const h = 150;
+  const w = h * (rageImg.width / rageImg.height || 1);
+  const shake = eatT > 0 ? Math.sin(eatT * 60) * 3 : 0;
+  ctx.save();
+  ctx.translate(cx + shake, EGGMAN_Y);
+  ctx.drawImage(rageImg, -w / 2, -h, w, h);
+  ctx.restore();
+}
+
 function drawEggMan(ctx, lean, eatT) {
   const S = EGGMAN_SCALE;
   const mid = LANE_X[SLOT_MIDDLE];
@@ -243,7 +276,8 @@ export function render(ctx, g) {
   // Map the cosmetic catcher x (which springs between lanes) to a -1..1 lean.
   const lean = Math.max(-1, Math.min(1,
     (g.catcher.x - LANE_X[SLOT_MIDDLE]) / (LANE_X[2] - LANE_X[SLOT_MIDDLE])));
-  drawEggMan(ctx, lean, g.catcher.eatT);
+  if (isRage(g) && rageReady) drawRageMan(ctx, lean, g.catcher.eatT);
+  else drawEggMan(ctx, lean, g.catcher.eatT);
 
   // HUD
   ctx.fillStyle = '#143a52';

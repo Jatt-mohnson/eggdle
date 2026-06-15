@@ -1,10 +1,13 @@
 // Bootstrap + scene flow: menu -> play -> result. Owns the fixed-timestep loop.
 
-import { FIXED_DT, ROUND_SECONDS } from './config.js';
+import { FIXED_DT, ROUND_SECONDS, RAGE_COMBO } from './config.js';
 import { rngFromString, todaySeed } from './rng.js';
 import { createGame, step } from './game.js';
 import { attachInput } from './input.js';
 import { resizeCanvas, render } from './render.js';
+
+// Shown on the result screen for a 25+ combo run (distinct from the in-game rage sprite).
+const CONGRATS_SRC = './assets/congrats.png';
 import { getStats, hasPlayedToday, recordDaily, resetAll } from './storage.js';
 import { buildShareText } from './share.js';
 import * as audio from './audio.js';
@@ -135,15 +138,6 @@ function showMenu() {
       stats.streak
         ? el('p', { className: 'note', textContent: `Streak ${stats.streak} · Best ${stats.bestScore.toLocaleString()}` })
         : '',
-      // Dev affordance (remove before shipping): replay today's daily.
-      el('button', {
-        className: 'devlink',
-        textContent: 'Reset daily (dev)',
-        onclick: () => {
-          resetAll();
-          showMenu();
-        },
-      }),
     ].filter(Boolean))
   );
   if (played && stats.lastResult) {
@@ -157,10 +151,16 @@ function buildResultBlock(result, stats, mode) {
     mode === 'daily'
       ? buildShareText({ ...result, date: dateSeed }, stats.streak)
       : `Eggdle practice — ${result.score.toLocaleString()} 🥚 · caught ${result.caught}/${result.total}`;
+  // Hot streak (combo reached the rage threshold at any point): egg-man reward.
+  const perfect = result.maxCombo >= RAGE_COMBO;
   const block = el('div', { className: 'result' }, [
+    perfect
+      ? el('img', { className: 'congrats', src: CONGRATS_SRC, alt: 'Congrats big boy', draggable: false })
+      : '',
+    perfect ? el('div', { className: 'perfect', textContent: `🔥 ${RAGE_COMBO}+ COMBO!` }) : '',
     el('div', { className: 'score', textContent: result.score.toLocaleString() }),
     el('pre', { className: 'share', textContent: share }),
-  ]);
+  ].filter(Boolean));
   block.append(
     el('button', {
       className: 'secondary',
