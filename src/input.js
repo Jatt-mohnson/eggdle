@@ -34,6 +34,12 @@ export function attachInput(canvas, getGame) {
       const g = getGame();
       if (g) g.input[side] = v;
     };
+    // iOS commits double-tap-to-zoom on the *second touchstart*, not touchend — and
+    // in-app browsers (e.g. a link opened from Slack) ignore the document touchend
+    // guard below entirely. Cancelling the zone's touchstart default kills the zoom
+    // at the source. Pointer events are a separate stream and still fire, so the
+    // move logic (pointerdown/up) below is unaffected. Must be { passive: false }.
+    el.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       set(true);
@@ -57,11 +63,31 @@ export function attachInput(canvas, getGame) {
   bindHold(document.getElementById('btn-left'), 'left');
   bindHold(document.getElementById('btn-right'), 'right');
 
-  // iOS Safari still honors double-tap-to-zoom even with user-scalable=no and
-  // touch-action:none. Two quick side-taps (move left, then right) get read as a
-  // double-tap and zoom the page into the tap point. Suppress any tap that lands
-  // within 300ms of the previous one — there are no intentional double-taps here.
-  // Buttons (the menu/result overlay) are excluded so their taps still register.
+  // --- kill every iOS zoom path -------------------------------------------
+  // iPhone Safari ignores maximum-scale / user-scalable=no, and touch-action
+  // alone doesn't reliably stop these. This is a fixed, non-scrolling game, so
+  // we swallow the browser's default touch gestures wholesale. Listeners must be
+  // { passive: false } or preventDefault() is a no-op on touch events.
+
+  // Pinch-zoom — the main culprit here, since play means holding one side while
+  // pressing the other (two fingers). The gesture that actually starts the zoom
+  // is a multi-touch touchmove; preventing it is what stops the pinch. The iOS
+  // proprietary gesture* events are belt-and-suspenders for the same thing.
+  document.addEventListener(
+    'touchmove',
+    (e) => {
+      if (e.touches.length > 1) e.preventDefault();
+    },
+    { passive: false }
+  );
+  for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+    document.addEventListener(type, (e) => e.preventDefault(), { passive: false });
+  }
+
+  // Double-tap-to-zoom — two quick side-taps (move left, then right) get read as
+  // a double-tap and zoom into the tap point. Suppress any tap within 300ms of
+  // the previous one; buttons (menu/result overlay) are excluded so their taps
+  // still register normally.
   let lastTouchEnd = 0;
   document.addEventListener(
     'touchend',
@@ -72,15 +98,6 @@ export function attachInput(canvas, getGame) {
     },
     { passive: false }
   );
-
-  // The bigger zoom culprit on iPhone: this game is played by holding one side
-  // and pressing the other, so a second finger lands while the first is held.
-  // iOS Safari treats that as a pinch and fires its non-standard gesture events,
-  // zooming the page — and touch-action / user-scalable / the touchend guard
-  // above don't stop it. Preventing the gesture events disables that pinch-zoom.
-  for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
-    document.addEventListener(type, (e) => e.preventDefault(), { passive: false });
-  }
 
   // Safety: if the page loses focus mid-hold, drop both directions.
   window.addEventListener('blur', () => {
