@@ -9,6 +9,7 @@ import {
   LANES,
   FALL_SPEED_START,
   FALL_SPEED_END,
+  GOLDEN_SPEED,
   BAD_CHANCE_START,
   BAD_CHANCE_END,
   GAP_SHORT_START,
@@ -74,6 +75,7 @@ export function buildSchedule(seedString) {
       ['trap', 0.5 + 2.4 * k],
       ['decoy', 0.4 + 2.0 * k],
       ['badRun', 0.3 + 1.8 * k],
+      ['golden', 0.35], // rare bonus: a single egg that dodges between lanes
     ]);
 
     switch (pattern) {
@@ -154,6 +156,14 @@ export function buildSchedule(seedString) {
         push(bl, 'bad', speed);
         t += gNorm;
         busyStreak++;
+        break;
+      }
+
+      // A lone golden egg that juke-slides between lanes to flee the catcher.
+      // Given room on either side so its dodging is the only thing to read.
+      case 'golden': {
+        push(rndLane(), 'golden', GOLDEN_SPEED);
+        t += Math.max(gNorm, 0.7);
         break;
       }
 

@@ -46,6 +46,14 @@ export function catchFx(x, y, combo, points) {
   });
 }
 
+export function goldenFx(x, y, points) {
+  burst(x, y, '#ffd84d', 22, 300);
+  burst(x, y, '#fff7c2', 12, 200);
+  texts.push({ x, y: y - 12, vy: -70, life: 0, max: 1.0, text: `+${points}`, color: '#e8a317', size: 26 });
+  shakeT = SHAKE_DUR;
+  shakeMag = 5;
+}
+
 export function badFx(x, y, points) {
   burst(x, y, '#c0392b', 16, 270);
   texts.push({ x, y: y - 12, vy: -52, life: 0, max: 0.9, text: `${points}`, color: '#c0392b', size: 22 });

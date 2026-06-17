@@ -11,6 +11,7 @@ import {
   EGG_BASE,
   COMBO_BONUS,
   BAD_PENALTY,
+  GOLDEN_BONUS,
   EGGMAN_EAT_TIME,
 } from './config.js';
 import { buildSchedule } from './schedule.js';
@@ -36,6 +37,7 @@ export function createGame(seedString, mode) {
     maxCombo: 0,
     caught: 0,
     badHit: 0,
+    golden: 0, // golden eggs caught (bonus, not part of caught/total accuracy)
     results: [], // outcomes in spawn order, for the share strip
     events: [], // cosmetic events drained each frame by the audio/effects layer
     finished: false,
@@ -96,6 +98,19 @@ export function step(g) {
     } else if (r === 'badAvoided') {
       g.results.push('badAvoided');
       g.events.push({ type: 'badAvoided', x: egg.x, y: g.catchY });
+    } else if (r === 'goldenCaught') {
+      const gained = GOLDEN_BONUS + g.combo * COMBO_BONUS;
+      g.score += gained;
+      g.combo += 1;
+      g.maxCombo = Math.max(g.maxCombo, g.combo);
+      g.golden += 1;
+      g.catcher.eatT = EGGMAN_EAT_TIME;
+      g.results.push('goldenCaught');
+      g.events.push({ type: 'goldenCaught', x: egg.x, y: g.catchY, combo: g.combo, points: gained });
+    } else if (r === 'goldenMissed') {
+      // A dodged golden egg costs nothing and doesn't break the combo — pure bonus.
+      g.results.push('goldenMissed');
+      g.events.push({ type: 'goldenMissed', x: egg.x, y: g.catchY });
     }
   }
   if (g.eggs.some((e) => e.dead)) g.eggs = g.eggs.filter((e) => !e.dead);

@@ -52,7 +52,24 @@ function drawLanes(ctx) {
 function drawEgg(ctx, egg) {
   ctx.save();
   ctx.translate(egg.x, egg.y);
-  if (egg.type === 'bad') {
+  if (egg.type === 'golden') {
+    // Shiny gold egg with a faint glow and a highlight, so it reads as the prize.
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,210,60,0.9)';
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = '#ffcf33';
+    ctx.strokeStyle = '#b8860b';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 9, 11, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+    ctx.beginPath();
+    ctx.ellipse(-3, -4, 2.4, 3.4, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (egg.type === 'bad') {
     // dark, spotted "rotten" egg — visually distinct from a good egg
     ctx.fillStyle = '#5b6b3a';
     ctx.strokeStyle = '#33401f';

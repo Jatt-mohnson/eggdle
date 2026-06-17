@@ -60,6 +60,18 @@ export function catchSound(combo) {
   tone({ freq: freq * 2, type: 'sine', dur: 0.08, vol: 0.25 }); // sparkle
 }
 
+// Golden egg caught: a bright rising three-note sparkle arpeggio.
+export function goldenSound() {
+  const base = 783.99; // G5
+  [0, 4, 7].forEach((semi, i) => {
+    const freq = base * Math.pow(2, semi / 12);
+    setTimeout(() => {
+      tone({ freq, type: 'triangle', dur: 0.14, vol: 0.8, glideTo: freq * 1.5 });
+      tone({ freq: freq * 2, type: 'sine', dur: 0.1, vol: 0.3 });
+    }, i * 70);
+  });
+}
+
 // Miss: a soft low blip downward.
 export function missSound() {
   tone({ freq: 175, type: 'sine', dur: 0.16, vol: 0.45, glideTo: 110 });

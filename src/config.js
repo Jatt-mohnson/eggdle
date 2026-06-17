@@ -40,6 +40,17 @@ export const SLOT_MIDDLE = 1;
 export const EGG_BASE = 100;
 export const COMBO_BONUS = 10; // per current combo
 export const BAD_PENALTY = 150; // points lost for catching a bad egg
+export const GOLDEN_BONUS = 500; // points for catching a golden egg (still extends the combo)
+
+// --- Golden egg ------------------------------------------------------------
+// A rare bonus egg that juke-slides between lanes to flee the player's slot,
+// then commits to a lane near the bottom so it's a challenge, not impossible.
+export const GOLDEN_SPEED = 0.82; // fall multiplier — a touch slower, to stay catchable
+export const GOLDEN_HOP_EVERY = 0.42; // seconds between re-picking a lane to flee to
+export const GOLDEN_SLIDE = 900; // px/s horizontal dart between lanes (fast, but visible)
+// How far above the catch line it stops juking and commits to its lane. This is
+// the player's guaranteed reaction window — bigger = easier.
+export const GOLDEN_LOCK_AHEAD = 165;
 
 // --- Schedule / difficulty curve ------------------------------------------
 // Chance a plain "single" spawn is a bad egg (eased up over the round).
