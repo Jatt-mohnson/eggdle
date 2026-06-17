@@ -5,6 +5,12 @@ html,
 body {
   margin: 0;
   height: 100%;
+  /* dvh tracks the *dynamic* viewport, so the layout fills the screen as Safari's
+     toolbar collapses instead of leaving a gap. min-height keeps it full-bleed. */
+  min-height: 100dvh;
+  /* Keep content clear of the notch / home indicator in fullscreen (viewport-fit=cover). */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
   background: #0e1b2a;
   color: #eaf2fa;
   font-family: system-ui, -apple-system, Segoe UI, sans-serif;
@@ -13,6 +19,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  overflow: hidden;
   touch-action: none;
   -webkit-user-select: none;
   user-select: none;
