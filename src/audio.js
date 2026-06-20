@@ -72,6 +72,12 @@ export function goldenSound() {
   });
 }
 
+// Cinderblock hit: a heavy low thud.
+export function blockSound() {
+  tone({ freq: 90, type: 'square', dur: 0.22, vol: 0.7, glideTo: 45 });
+  tone({ freq: 60, type: 'sawtooth', dur: 0.3, vol: 0.45, glideTo: 38 });
+}
+
 // Miss: a soft low blip downward.
 export function missSound() {
   tone({ freq: 175, type: 'sine', dur: 0.16, vol: 0.45, glideTo: 110 });

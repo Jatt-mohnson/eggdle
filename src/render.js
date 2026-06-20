@@ -3,7 +3,7 @@
 import {
   VIRTUAL_W, VIRTUAL_H, LANE_X, EGGMAN_Y, CATCH_Y, ROUND_SECONDS,
   SLOT_MIDDLE, EGGMAN_SCALE, EGGMAN_MAX_TILT, EGGMAN_STRETCH, EGGMAN_EAT_TIME,
-  RAGE_COMBO,
+  RAGE_COMBO, STUN_TIME,
 } from './config.js';
 
 // Perfect-run reward: once every good egg has been caught, the mild-mannered
@@ -52,7 +52,26 @@ function drawLanes(ctx) {
 function drawEgg(ctx, egg) {
   ctx.save();
   ctx.translate(egg.x, egg.y);
-  if (egg.type === 'golden') {
+  if (egg.type === 'block') {
+    // A grey cinderblock: a boxy slab with two hollow cores.
+    const w = 30, h = 20;
+    ctx.fillStyle = '#9a9a93';
+    ctx.strokeStyle = '#5c5c54';
+    ctx.lineWidth = 2;
+    ctx.fillRect(-w / 2, -h / 2, w, h);
+    ctx.strokeRect(-w / 2, -h / 2, w, h);
+    ctx.fillStyle = '#6f6f67';
+    for (const hx of [-7, 7]) {
+      ctx.fillRect(hx - 4, -5, 8, 10);
+      ctx.strokeRect(hx - 4, -5, 8, 10);
+    }
+    ctx.beginPath(); // center web between the cores
+    ctx.moveTo(0, -h / 2);
+    ctx.lineTo(0, h / 2);
+    ctx.stroke();
+    ctx.restore();
+    return;
+  } else if (egg.type === 'golden') {
     // Shiny gold egg with a faint glow and a highlight, so it reads as the prize.
     ctx.save();
     ctx.shadowColor = 'rgba(255,210,60,0.9)';
@@ -140,7 +159,7 @@ function drawRageMan(ctx, lean, eatT) {
   ctx.restore();
 }
 
-function drawEggMan(ctx, lean, eatT) {
+function drawEggMan(ctx, lean, eatT, flat = 0) {
   const S = EGGMAN_SCALE;
   const mid = LANE_X[SLOT_MIDDLE];
   const side = LANE_X[2] - LANE_X[SLOT_MIDDLE];
@@ -163,6 +182,9 @@ function drawEggMan(ctx, lean, eatT) {
 
   ctx.save();
   ctx.translate(footX, EGGMAN_Y);
+  // Flattened by a cinderblock: squash the whole sprite down toward the feet
+  // and spread it wide. `flat` runs 1 (just hit) -> 0 (recovered upright).
+  if (flat > 0) ctx.scale(1 + 0.8 * flat, 1 - 0.7 * flat);
   ctx.scale(S, S);
   ctx.strokeStyle = ink;
   ctx.lineJoin = 'round';
@@ -219,7 +241,9 @@ function drawEggMan(ctx, lean, eatT) {
   ctx.quadraticCurveTo(0, -22, 24, -34);
   ctx.stroke();
 
-  // Eyes (whites + calm solid pupils)
+  // Eyes (whites + calm solid pupils). When flattened, the pupils become dazed
+  // X's instead.
+  const dazed = flat > 0.4;
   for (const ex of [-12, 12]) {
     ctx.fillStyle = fill;
     ctx.lineWidth = 2.2;
@@ -227,10 +251,20 @@ function drawEggMan(ctx, lean, eatT) {
     ctx.arc(ex, -60, 6.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    ctx.fillStyle = ink;
-    ctx.beginPath();
-    ctx.arc(ex, -60, 2.6, 0, Math.PI * 2);
-    ctx.fill();
+    if (dazed) {
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = 2;
+      const r = 3;
+      ctx.beginPath();
+      ctx.moveTo(ex - r, -60 - r); ctx.lineTo(ex + r, -60 + r);
+      ctx.moveTo(ex + r, -60 - r); ctx.lineTo(ex - r, -60 + r);
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = ink;
+      ctx.beginPath();
+      ctx.arc(ex, -60, 2.6, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   // The caught egg drops from above into the open mouth, then is swallowed.
@@ -283,8 +317,9 @@ export function render(ctx, g) {
   // Map the cosmetic catcher x (which springs between lanes) to a -1..1 lean.
   const lean = Math.max(-1, Math.min(1,
     (g.catcher.x - LANE_X[SLOT_MIDDLE]) / (LANE_X[2] - LANE_X[SLOT_MIDDLE])));
+  const flat = g.catcher.stunT > 0 ? g.catcher.stunT / STUN_TIME : 0;
   if (isRage(g) && rageReady) drawRageMan(ctx, lean, g.catcher.eatT);
-  else drawEggMan(ctx, lean, g.catcher.eatT);
+  else drawEggMan(ctx, lean, g.catcher.eatT, flat);
 
   // HUD
   ctx.fillStyle = '#143a52';

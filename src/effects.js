@@ -61,6 +61,14 @@ export function badFx(x, y, points) {
   shakeMag = 8;
 }
 
+export function blockFx(x, y) {
+  burst(x, y, '#8a8a82', 20, 220);
+  burst(x, y, '#b5b5ad', 12, 150);
+  texts.push({ x, y: y - 14, vy: -40, life: 0, max: 1.1, text: 'SPLAT!', color: '#5c5c54', size: 22 });
+  shakeT = SHAKE_DUR;
+  shakeMag = 12;
+}
+
 export function missFx(x, y) {
   burst(x, y, '#9bb0c4', 5, 120);
 }

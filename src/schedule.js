@@ -10,6 +10,7 @@ import {
   FALL_SPEED_START,
   FALL_SPEED_END,
   GOLDEN_SPEED,
+  BLOCK_SPEED,
   BAD_CHANCE_START,
   BAD_CHANCE_END,
   GAP_SHORT_START,
@@ -76,6 +77,7 @@ export function buildSchedule(seedString) {
       ['decoy', 0.4 + 2.0 * k],
       ['badRun', 0.3 + 1.8 * k],
       ['golden', 0.35], // rare bonus: a single egg that dodges between lanes
+      ['block', 0.9 + 2.4 * k], // hazard: a cinderblock that flattens the egg-man
     ]);
 
     switch (pattern) {
@@ -164,6 +166,14 @@ export function buildSchedule(seedString) {
       case 'golden': {
         push(rndLane(), 'golden', GOLDEN_SPEED);
         t += Math.max(gNorm, 0.7);
+        break;
+      }
+
+      // A heavy cinderblock in one lane — step aside or get flattened. Room on
+      // both sides so the dodge is clearly readable.
+      case 'block': {
+        push(rndLane(), 'block', BLOCK_SPEED);
+        t += Math.max(gNorm, 0.8);
         break;
       }
 

@@ -78,6 +78,7 @@ export function integrateEgg(egg, state, dt) {
     egg.dead = true;
     const atLane = state.catcher.slot === egg.lane;
     if (egg.type === 'golden') return atLane ? 'goldenCaught' : 'goldenMissed';
+    if (egg.type === 'block') return atLane ? 'blockHit' : 'blockAvoided';
     if (egg.type === 'bad') return atLane ? 'badCaught' : 'badAvoided';
     return atLane ? 'caught' : 'missed';
   }

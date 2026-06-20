@@ -13,6 +13,7 @@ import {
   BAD_PENALTY,
   GOLDEN_BONUS,
   EGGMAN_EAT_TIME,
+  STUN_TIME,
 } from './config.js';
 import { buildSchedule } from './schedule.js';
 import { spawnEgg, integrateEgg } from './entities.js';
@@ -30,7 +31,8 @@ export function createGame(seedString, mode) {
     catchY: CATCH_Y,
     // catcher: slot drives catch logic; x is a cosmetic slide toward the slot.
     // eatT counts down a chomp/swallow animation each time a good egg is caught.
-    catcher: { slot: SLOT_MIDDLE, x: LANE_X[SLOT_MIDDLE], eatT: 0 },
+    // stunT counts down a flattened, can't-move state after a cinderblock hit.
+    catcher: { slot: SLOT_MIDDLE, x: LANE_X[SLOT_MIDDLE], eatT: 0, stunT: 0 },
     input: { left: false, right: false }, // set by keyboard or the touch hold-buttons
     score: 0,
     combo: 0,
@@ -38,6 +40,7 @@ export function createGame(seedString, mode) {
     caught: 0,
     badHit: 0,
     golden: 0, // golden eggs caught (bonus, not part of caught/total accuracy)
+    flattened: 0, // times a cinderblock flattened the egg-man
     results: [], // outcomes in spawn order, for the share strip
     events: [], // cosmetic events drained each frame by the audio/effects layer
     finished: false,
@@ -65,7 +68,12 @@ export function step(g) {
   }
 
   // Catcher: pick a discrete slot, then slide the sprite toward it (cosmetic only).
-  g.catcher.slot = targetSlot(g.input);
+  // While flattened by a cinderblock, input is ignored and the slot stays frozen.
+  if (g.catcher.stunT > 0) {
+    g.catcher.stunT = Math.max(0, g.catcher.stunT - dt);
+  } else {
+    g.catcher.slot = targetSlot(g.input);
+  }
   const tx = LANE_X[g.catcher.slot];
   const d = tx - g.catcher.x;
   const maxMove = CATCHER_SLIDE * dt;
@@ -111,6 +119,16 @@ export function step(g) {
       // A dodged golden egg costs nothing and doesn't break the combo — pure bonus.
       g.results.push('goldenMissed');
       g.events.push({ type: 'goldenMissed', x: egg.x, y: g.catchY });
+    } else if (r === 'blockHit') {
+      // Flattened: freeze movement for a few seconds and break the combo.
+      g.catcher.stunT = STUN_TIME;
+      g.combo = 0;
+      g.flattened += 1;
+      g.results.push('blockHit');
+      g.events.push({ type: 'blockHit', x: egg.x, y: g.catchY });
+    } else if (r === 'blockAvoided') {
+      g.results.push('blockAvoided');
+      g.events.push({ type: 'blockAvoided', x: egg.x, y: g.catchY });
     }
   }
   if (g.eggs.some((e) => e.dead)) g.eggs = g.eggs.filter((e) => !e.dead);

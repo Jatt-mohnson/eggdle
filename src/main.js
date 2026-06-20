@@ -46,6 +46,9 @@ function handleEvent(ev) {
     effects.goldenFx(ev.x, ev.y, ev.points);
   } else if (ev.type === 'goldenMissed') {
     effects.avoidFx(ev.x, ev.y);
+  } else if (ev.type === 'blockHit') {
+    audio.blockSound();
+    effects.blockFx(ev.x, ev.y);
   }
 }
 
@@ -108,6 +111,7 @@ function onFinish() {
     total: game.goodTotal,
     badHit: game.badHit,
     golden: game.golden,
+    flattened: game.flattened,
     results: game.results,
   };
   let stats = getStats();

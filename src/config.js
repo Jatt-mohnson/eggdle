@@ -52,6 +52,12 @@ export const GOLDEN_SLIDE = 900; // px/s horizontal dart between lanes (fast, bu
 // the player's guaranteed reaction window — bigger = easier.
 export const GOLDEN_LOCK_AHEAD = 165;
 
+// --- Cinderblock -----------------------------------------------------------
+// A falling hazard: stand under it and the egg-man gets flattened — frozen in
+// place (no movement) and squashed — for STUN_TIME seconds. Breaks the combo.
+export const BLOCK_SPEED = 1.25; // fall multiplier — heavy, drops a bit quicker than an egg
+export const STUN_TIME = 2.2; // seconds the egg-man stays flattened after a hit
+
 // --- Schedule / difficulty curve ------------------------------------------
 // Chance a plain "single" spawn is a bad egg (eased up over the round).
 export const BAD_CHANCE_START = 0.16;
